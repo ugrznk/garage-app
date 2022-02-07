@@ -18,7 +18,9 @@ public class GarageController {
     @PostMapping(path = "/park")
     public ResponseEntity<String> park(@RequestBody @Valid VehicleModel vehicle) {
         var response =  garageService.park(vehicle);
-        return ResponseEntity.ok(response);
+        String responseText = "Allocated " + response.getAllocatedParkingSlots().size() +
+                (response.getAllocatedParkingSlots().size() == 1 ? " slot." : " slots.");
+        return ResponseEntity.ok(responseText);
     }
 
     @DeleteMapping(path = "/leave/{ticketNo}")

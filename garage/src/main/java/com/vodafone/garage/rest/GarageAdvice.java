@@ -1,5 +1,6 @@
 package com.vodafone.garage.rest;
 
+import com.vodafone.garage.exception.GarageFullException;
 import com.vodafone.garage.exception.TicketNotActiveException;
 import com.vodafone.garage.exception.NoTicketFoundException;
 import org.springframework.http.HttpStatus;
@@ -22,6 +23,11 @@ public class GarageAdvice {
 
     @ExceptionHandler(TicketNotActiveException.class)
     public ResponseEntity<Object> ticketNotActiveException(TicketNotActiveException e) {
+        return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(e.getMessage());
+    }
+
+    @ExceptionHandler(GarageFullException.class)
+    public ResponseEntity<Object> garageFullException(GarageFullException e) {
         return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(e.getMessage());
     }
 

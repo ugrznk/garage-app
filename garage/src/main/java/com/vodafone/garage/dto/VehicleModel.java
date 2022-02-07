@@ -8,6 +8,7 @@ import javax.validation.constraints.NotNull;
 @NoArgsConstructor
 @Getter
 @Setter
+@Builder
 public class VehicleModel {
     @NotNull(message = "vehicleType can not be null.")
     private VehicleTypesEnum vehicleType;

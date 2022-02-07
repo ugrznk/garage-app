@@ -1,11 +1,12 @@
 package com.vodafone.garage.service;
 
 import com.vodafone.garage.dto.VehicleModel;
+import com.vodafone.garage.entity.TicketInfo;
 
 public interface GarageService {
-    String park(VehicleModel vehicle);
+    TicketInfo park(VehicleModel vehicle);
 
-    void leave(Long ticketNo);
+    TicketInfo leave(Long ticketNo);
 
     String status();
 }

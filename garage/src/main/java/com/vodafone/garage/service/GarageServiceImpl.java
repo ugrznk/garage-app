@@ -2,7 +2,9 @@ package com.vodafone.garage.service;
 
 import com.vodafone.garage.dto.VehicleModel;
 import com.vodafone.garage.entity.TicketInfo;
+import com.vodafone.garage.exception.GarageFullException;
 import com.vodafone.garage.exception.NoTicketFoundException;
+import com.vodafone.garage.exception.TicketNotActiveException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -23,12 +25,12 @@ public class GarageServiceImpl implements GarageService {
     private Long ticketNo = 1L;
 
     @Override
-    public String park(VehicleModel vehicle) {
+    public TicketInfo park(VehicleModel vehicle) {
         log.info(vehicle.getVehicleType().getType() + " Entered!");
         var allocatedSpaces = getAvailableSlots(vehicle.getVehicleType().getWidth());
         if(allocatedSpaces.isEmpty()) {
-            log.info("Couldn't allocate space, garage is full");
-            return "Garage is full!";
+            log.error("Couldn't allocate space, garage is full");
+            throw new GarageFullException("Garage is full!");
         }
         setParkingLotsUsage(true, allocatedSpaces);
         var nextTicket = getNextTicketNo();
@@ -41,8 +43,8 @@ public class GarageServiceImpl implements GarageService {
                 .parkedDate(LocalDateTime.now())
                 .build();
         ticketMap.put(nextTicket, ticketInfo);
-        log.info("Successfully allocated space. Ticket no:" +ticketInfo);
-        return "Allocated " + allocatedSpaces.size() + (allocatedSpaces.size() == 1 ? " slot." : " slots.");
+        log.info("Successfully allocated space. Ticket no:" +nextTicket);
+        return ticketInfo;
     }
 
     private synchronized Long getNextTicketNo() {
@@ -69,7 +71,7 @@ public class GarageServiceImpl implements GarageService {
     }
 
     @Override
-    public void leave(Long ticketNo) {
+    public TicketInfo leave(Long ticketNo) {
         var ticketInfo = ticketMap.get(ticketNo);
         if(ticketInfo == null) {
             log.error("ticketNo: "+ticketNo + " not found!");
@@ -77,13 +79,14 @@ public class GarageServiceImpl implements GarageService {
         }
         if(!ticketInfo.isParked()) {
             log.error("ticketNo: "+ticketNo + " is not active!");
-            throw new NoTicketFoundException("Ticket is not active!");
+            throw new TicketNotActiveException("Ticket is not active!");
         }
         setParkingLotsUsage(false, ticketInfo.getAllocatedParkingSlots());
         ticketInfo.setParked(false);
         ticketInfo.setLeftDate(LocalDateTime.now());
         ticketMap.put(ticketNo, ticketInfo);
         log.info(ticketNo+ " successfully left!");
+        return ticketInfo;
     }
 
     private synchronized void setParkingLotsUsage(boolean availability, List<Integer> allocatedSpaces) {
